@@ -30,10 +30,21 @@ class App(tk.Tk):
         self.k_label = tk.Label(self.control_frame, text="K Value", bg='grey', fg='white')
         self.k_label.pack(pady=10)
 
-        self.k_value = tk.IntVar(value=2)  # Initialize K to 2
+        self.k_value = tk.IntVar(value=2)  
         self.k_slider = ttk.Scale(self.control_frame, from_=1, to=10, variable=self.k_value, orient=tk.HORIZONTAL)
         self.k_slider.pack(pady=10)
         self.k_slider.bind("<ButtonRelease-1>", self.update_plot)
+
+        # Add display for current K value
+        self.k_display = tk.Label(self.control_frame, 
+                                text=f"Current K: {self.k_value.get()}", 
+                                bg='grey', 
+                                fg='white',
+                                font=('Arial', 12, 'bold'))
+        self.k_display.pack(pady=5)
+        
+        # Update k_display whenever the slider value changes
+        self.k_value.trace('w', self.update_k_display)
 
         self.refresh_button = tk.Button(self.control_frame, text="Refresh", command=self.restart_animation, bg='grey', fg='white')
         self.refresh_button.pack(pady=10)
@@ -41,12 +52,15 @@ class App(tk.Tk):
         self.animation = None
         self.update_plot(None)
 
+    def update_k_display(self, *args):
+        self.k_display.config(text=f"Current K: {self.k_value.get()}")
+
     def animate_kmeans(self, K, max_iters=20):
         # Set up the figure
         self.figure.clear()
         ax = self.figure.add_subplot(111)
         fig = self.figure
-        fig.set_facecolor('black')  # Set background color to black
+        fig.set_facecolor('black') 
 
         # Initialize colors for clusters
         colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'pink', 'orange', 'purple']
@@ -73,7 +87,7 @@ class App(tk.Tk):
             centroids = new_centroids
 
         def update(frame):
-            ax.clear()  # Clear the plot for each frame
+            ax.clear()  
 
             # Get the centroids for the current frame
             current_centroids = centroids_history[min(frame, len(centroids_history) - 1)]
@@ -85,17 +99,18 @@ class App(tk.Tk):
                 ax.scatter(cluster_points[:, 0], cluster_points[:, 1], s=30, color=colors[k % len(colors)], alpha=0.6, label=f"Cluster {k+1}")
                 ax.scatter(current_centroids[k, 0], current_centroids[k, 1], color='black', marker='x', s=100)  # Plot centroid
 
-            ax.set_title(f"K-means Iteration {frame + 1} for K={K}")
+                ax.set_title(f"K-means Iteration {frame + 1} for K={K}", color='white')
+
             ax.legend(loc="upper right")
 
         # Create the animation with a 2-second interval between frames
         self.animation = FuncAnimation(fig, update, frames=max_iters, interval=2000, repeat=False)
-        plt.tight_layout()  # Adjust layout to fit titles
+        plt.tight_layout()  
         return self.animation
 
     def update_plot(self, event):
         K = self.k_value.get()
-        print(f"K value: {K}")
+        #print(f"K value: {K}")
         if K > 0:
             if self.animation:
                 self.animation.event_source.stop()
